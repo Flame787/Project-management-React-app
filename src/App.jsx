@@ -11,14 +11,47 @@ function App() {
     // this property of state-object will be used to store project ID of selected project
     // it will be 'null' if we want to add new project, or 'undefined' if not adding new project
     projects: [], // array/list of all project IDs
+
+    // adding tasks as one property of the main state (tasks for each SelectedProject.jsx -> in Tasks.jsx):
+    tasks: [],
   });
 
-  function handleSelectProject(id){
+  // new functions for managing tasks inside a project:
+  function handleAddTask(text) {
+    // expecting to get some text as argument (name irrelevant), from the last child-componentNewTask
+    setProjectsState((prevState) => {
+      const taskId = Math.random();
+      const newTask = {
+        text: text,
+        projectId: prevState.selectedProjectId,
+        id: taskId,
+      };
+
+      return {
+        ...prevState,
+        tasks: [newTask, ...prevState.tasks],
+        // adding new element as a first (or last) element of the tasks-array
+      };
+    });
+  }
+
+  function handleDeleteTask(id) {
+    // expecting to get task-id as argument (name irrelevant), from the last child-componentNewTask
+    setProjectsState((prevState) => {
+      return {
+        ...prevState,
+        tasks: prevState.tasks.filter((task) => task.id !== id),
+      };
+    });
+  }
+
+  // functions for managing whole projects (not tasks inside of them):
+
+  function handleSelectProject(id) {
     setProjectsState((prevState) => {
       return {
         ...prevState,
         selectedProjectId: id, // we are cancelling add-project-layout & returning to starting layout
-  
       };
     });
   }
@@ -34,12 +67,11 @@ function App() {
     // we get the previous state, and return an updated state-object
   }
 
-  function handleCancelAddproject(){
+  function handleCancelAddproject() {
     setProjectsState((prevState) => {
       return {
         ...prevState,
         selectedProjectId: undefined, // we are cancelling add-project-layout & returning to starting layout
-  
       };
     });
   }
@@ -70,15 +102,17 @@ function App() {
     });
   }
 
-  function handleDeleteProject(id){
+  function handleDeleteProject(id) {
     setProjectsState((prevState) => {
       return {
         ...prevState,
         selectedProjectId: undefined,
-        projects: prevState.projects.filter((project) => project.id !== prevState.selectedProjectId)
+        projects: prevState.projects.filter(
+          (project) => project.id !== prevState.selectedProjectId
+        ),
       };
-      // fillter-method goes through every item in the list, and will return 'true' if an element should be 
-      // kept in array, or 'false' if element should be deleted from array. 
+      // fillter-method goes through every item in the list, and will return 'true' if an element should be
+      // kept in array, or 'false' if element should be deleted from array.
       // filter-method will return a new array, containing only the elements that cannot be dropped.
       // !== - if the ID-s are not the same, then it returns false and the item stays on the list (not deleted)
       // if the ID-s do match, then this item should be deleted -> new array created, without deleted project.
@@ -87,18 +121,33 @@ function App() {
 
   console.log(projectsState);
 
-  const selectedProject = projectsState.projects.find(project => project.id === projectsState.selectedProjectId);
-  // looking for a project in array, which has the same ID as selectedProjectId 
+  const selectedProject = projectsState.projects.find(
+    (project) => project.id === projectsState.selectedProjectId
+  );
+  // looking for a project in array, which has the same ID as selectedProjectId
   // (selectedProjectId = one property of the state-object)
   // find-method will return the found element
 
-  // let content; 
+  // let content;
   // conditionally rendering either NewProject-component or NoProjectSelected-component:
-  let content = <SelectedProject project={selectedProject} onDelete={handleDeleteProject} />   
+  let content = (
+    <SelectedProject
+      project={selectedProject}
+      onDelete={handleDeleteProject}
+      onAddTask={handleAddTask}
+      onDeleteTask={handleDeleteTask}
+      tasks={projectsState.tasks}
+    />
+    // onAddTask={handleAddTask} & onDeleteTask={handleDeleteTask} are both examples of prop-drilling:
+    // the props 'onAddTask' & 'onDeleteTask' will be "drilled"/passed from App.jsx to next child-components:
+    // SelectedProject.jsx -> Tasks.jsx -> NewTask.jsx
+  );
   // <SelectedProject /> is here a value set as default
 
   if (projectsState.selectedProjectId === null) {
-    content = <NewProject onAdd={handleAddProject} onCancel={handleCancelAddproject} />;
+    content = (
+      <NewProject onAdd={handleAddProject} onCancel={handleCancelAddproject} />
+    );
   } else if (projectsState.selectedProjectId === undefined) {
     content = <NoProjectSelected onStartAddProject={handleStartAddProject} />;
   }
@@ -109,11 +158,14 @@ function App() {
         onStartAddProject={handleStartAddProject}
         projects={projectsState.projects}
         onSelectProject={handleSelectProject}
+        selectedProjectId={projectsState.selectedProjectId}
       />
       {/* passing the list of our projects to this component, so all projects can be displayed in Side-bar */}
-      
+
       {/* <NewProject /> */}
       {/* <NoProjectSelected onStartAddProject={handleStartAddProject} /> */}
+      {/* selectedProjectId - without that, the selected project-name would not be highlightened in Sidebar */}
+      
       {content}
     </main>
   );
