@@ -3,6 +3,7 @@ import { useState } from "react";
 import ProjectsSidebar from "./components/ProjectsSidebar";
 import NewProject from "./components/NewProject";
 import NoProjectSelected from "./components/NoProjectSelected";
+import SelectedProject from "./components/SelectedProject";
 
 function App() {
   const [projectsState, setProjectsState] = useState({
@@ -11,6 +12,16 @@ function App() {
     // it will be 'null' if we want to add new project, or 'undefined' if not adding new project
     projects: [], // array/list of all project IDs
   });
+
+  function handleSelectProject(id){
+    setProjectsState((prevState) => {
+      return {
+        ...prevState,
+        selectedProjectId: id, // we are cancelling add-project-layout & returning to starting layout
+  
+      };
+    });
+  }
 
   function handleStartAddProject() {
     setProjectsState((prevState) => {
@@ -59,9 +70,32 @@ function App() {
     });
   }
 
+  function handleDeleteProject(id){
+    setProjectsState((prevState) => {
+      return {
+        ...prevState,
+        selectedProjectId: undefined,
+        projects: prevState.projects.filter((project) => project.id !== prevState.selectedProjectId)
+      };
+      // fillter-method goes through every item in the list, and will return 'true' if an element should be 
+      // kept in array, or 'false' if element should be deleted from array. 
+      // filter-method will return a new array, containing only the elements that cannot be dropped.
+      // !== - if the ID-s are not the same, then it returns false and the item stays on the list (not deleted)
+      // if the ID-s do match, then this item should be deleted -> new array created, without deleted project.
+    });
+  }
+
   console.log(projectsState);
 
-  let content; // conditionally rendering either NewProject-component or NoProjectSelected-component:
+  const selectedProject = projectsState.projects.find(project => project.id === projectsState.selectedProjectId);
+  // looking for a project in array, which has the same ID as selectedProjectId 
+  // (selectedProjectId = one property of the state-object)
+  // find-method will return the found element
+
+  // let content; 
+  // conditionally rendering either NewProject-component or NoProjectSelected-component:
+  let content = <SelectedProject project={selectedProject} onDelete={handleDeleteProject} />   
+  // <SelectedProject /> is here a value set as default
 
   if (projectsState.selectedProjectId === null) {
     content = <NewProject onAdd={handleAddProject} onCancel={handleCancelAddproject} />;
@@ -74,6 +108,7 @@ function App() {
       <ProjectsSidebar
         onStartAddProject={handleStartAddProject}
         projects={projectsState.projects}
+        onSelectProject={handleSelectProject}
       />
       {/* passing the list of our projects to this component, so all projects can be displayed in Side-bar */}
       
