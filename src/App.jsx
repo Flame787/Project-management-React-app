@@ -23,6 +23,16 @@ function App() {
     // we get the previous state, and return an updated state-object
   }
 
+  function handleCancelAddproject(){
+    setProjectsState((prevState) => {
+      return {
+        ...prevState,
+        selectedProjectId: undefined, // we are cancelling add-project-layout & returning to starting layout
+  
+      };
+    });
+  }
+
   // lifting the state up from the NewProject-components, where we use Refs to store/read input-values:
   function handleAddProject(projectData) {
     // adding argument projectData - object with properties: title, description, dueDate
@@ -54,7 +64,7 @@ function App() {
   let content; // conditionally rendering either NewProject-component or NoProjectSelected-component:
 
   if (projectsState.selectedProjectId === null) {
-    content = <NewProject onAdd={handleAddProject} />;
+    content = <NewProject onAdd={handleAddProject} onCancel={handleCancelAddproject} />;
   } else if (projectsState.selectedProjectId === undefined) {
     content = <NoProjectSelected onStartAddProject={handleStartAddProject} />;
   }
